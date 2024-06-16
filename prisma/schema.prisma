@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int           @id @default(autoincrement())
+  fullname        String?
+  username        String?       @unique
+  imageUrl        String?
+  bio             String?
+  email           String        @unique
+  isEmailVerified Boolean       @default(false)
+  hashedPassword  String
+
+  activateTokens  ActivateToken[]
+  comments        Comment[]
+  savedBlogs      List[]
+  blogs           Blog[]
+  notification    Notification[]
+  searches        Searches[]
+  stars           StarOnBlogs[]
+  categories      CategoryOnUsers[]
+  followers       Follow[]      @relation("UserFollowers")
+  followed        Follow[]      @relation("UserFollowed")
+
+  createdAt       DateTime      @default(now()) 
+  updatedAt       DateTime      @updatedAt
+}
+
+model ActivateToken {
+  id              Int       @id @default(autoincrement())
+  token           String    @unique
+  activatedAt     DateTime?
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Blog {
+  id                  Int       @id @default(autoincrement())
+  blogId              String    @unique
+  title               String
+  content             String
+  imageUrl            String?
+  draft               Boolean   @default(true)
+
+  comments            Comment[]
+  stars               StarOnBlogs[]
+  categories          CategoryOnBlogs[]
+  saves               List[]
+  notifications       Notification[]
+  author              User      @relation(fields: [authorId], references: [id])
+  authorId            Int
+  
+  updatedContentAt    DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([blogId])
+}
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  blog        Blog      @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+  seen        Boolean   @default(false)
+
+  createdAt   DateTime  @default(now())
+}
+
+model Searches {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  content     String
+  
+  createdAt   DateTime  @default(now())
+}
+
+model List {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  blog        Blog      @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+
+  @@unique([userId, blogId])
+}
+
+model Follow {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation("UserFollowed", fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  follower    User      @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  Int
+  
+  @@unique([userId, followerId])
+}
+
+model Comment {
+  id          Int       @id @default(autoincrement())
+  content     String
+  blog        Blog      @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId    Int
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model StarOnBlogs {
+  id          Int       @id @default(autoincrement())
+  blog        Blog      @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+
+  @@unique([userId, blogId])
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  blogs       CategoryOnBlogs[]
+  users       CategoryOnUsers[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model CategoryOnBlogs {
+  id          Int         @id @default(autoincrement())
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  Int
+  blog        Blog        @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+
+  @@unique([categoryId, blogId])
+}
+
+model CategoryOnUsers {
+  id          Int         @id @default(autoincrement())
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  Int
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+
+  @@unique([categoryId, userId])
+}
