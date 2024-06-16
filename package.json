@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "nodemon --files index.ts"
+    "dev": "nodemon --files index.ts",
+    "postinstall": "prisma generate"
   },
   "author": "Abdullah Abdulkareem",
   "license": "MIT",
