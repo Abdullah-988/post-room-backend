@@ -420,7 +420,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const token = await generateToken(newUser.id);
 
-    res.setHeader("token", `Bearer ${token}`);
+    res.setHeader("Authorization", `Bearer ${token}`);
 
     return res.status(201).json(newUser);
   } catch (error: any) {
@@ -458,7 +458,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const token = await generateToken(user.id);
 
-    res.setHeader("token", `Bearer ${token}`);
+    res.setHeader("Authorization", `Bearer ${token}`);
 
     return res.status(200).json({
       id: user.id,
