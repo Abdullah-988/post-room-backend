@@ -274,8 +274,28 @@ export const editUser = async (req: Request, res: Response) => {
   try {
     const { fullname, username, bio, imageUrl } = req.body;
 
-    if (!fullname || !username || !bio || !imageUrl) {
+    if (!fullname && !username && !bio && !imageUrl) {
       return res.status(400).send("Missing required fields");
+    }
+
+    let defaultFullname: string | null | undefined = fullname;
+    if (!fullname) {
+      defaultFullname = req.user.fullname;
+    }
+
+    let defaultUsername: string | null | undefined = username;
+    if (!username) {
+      defaultUsername = req.user.username;
+    }
+
+    let defaultBio: string | null | undefined = bio;
+    if (!bio) {
+      defaultBio = req.user.bio;
+    }
+
+    let defaultImageUrl: string | null | undefined = imageUrl;
+    if (!imageUrl) {
+      defaultImageUrl = req.user.imageUrl;
     }
 
     const user = await db.user.update({
@@ -283,10 +303,18 @@ export const editUser = async (req: Request, res: Response) => {
         id: req.user.id,
       },
       data: {
-        fullname,
-        username,
-        bio,
-        imageUrl,
+        fullname: defaultFullname,
+        username: defaultUsername,
+        bio: defaultBio,
+        imageUrl: defaultImageUrl,
+      },
+      select: {
+        id: true,
+        fullname: true,
+        username: true,
+        email: true,
+        bio: true,
+        imageUrl: true,
       },
     });
 
@@ -482,7 +510,7 @@ export const addCategories = async (req: Request, res: Response) => {
     const { categories } = req.body as { categories: string[] };
 
     if (!categories) {
-      return res.status(400).send("No categories entered");
+      return res.status(400).send("No categories provided");
     }
 
     const dbCategories = [];
@@ -498,6 +526,17 @@ export const addCategories = async (req: Request, res: Response) => {
       }
 
       dbCategories.push(category);
+
+      const userAlreadyHasCategory = await db.categoryOnUsers.findFirst({
+        where: {
+          categoryId: category.id,
+          userId: req.user.id,
+        },
+      });
+
+      if (userAlreadyHasCategory) {
+        continue;
+      }
 
       await db.categoryOnUsers.create({
         data: {

@@ -700,7 +700,7 @@ export const getCategoryBlogs = async (req: Request, res: Response) => {
 // @access  Private
 export const getCategories = async (req: Request, res: Response) => {
   try {
-    const categories = await db.blog.findMany();
+    const categories = await db.category.findMany();
 
     return res.status(200).json(categories);
   } catch (error: any) {
