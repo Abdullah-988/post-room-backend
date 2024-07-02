@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import db from "../lib/db";
+
+interface JWTPayload {
+  id: number;
+}
 
 function isNumeric(value: string) {
   return /^\d+$/.test(value);
@@ -68,8 +73,17 @@ export const searchBlogs = async (req: Request, res: Response) => {
             comments: true,
           },
         },
+        saves: {
+          where: { userId: req.user.id },
+          select: { id: true },
+        },
       },
     });
+
+    const blogsWithStarredAndSaved = await blogs.map(({ saves, ...blog }) => ({
+      ...blog,
+      saved: saves.length > 0,
+    }));
 
     const recentSearches = await db.searches.findMany({
       where: {
@@ -97,7 +111,7 @@ export const searchBlogs = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json(blogs);
+    return res.status(200).json(blogsWithStarredAndSaved);
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });
@@ -484,10 +498,19 @@ export const getBlogs = async (req: Request, res: Response) => {
             comments: true,
           },
         },
+        saves: {
+          where: { userId: req.user.id },
+          select: { id: true },
+        },
       },
     });
 
-    return res.status(200).json(blogs);
+    const blogsWithStarredAndSaved = await blogs.map(({ saves, ...blog }) => ({
+      ...blog,
+      saved: saves.length > 0,
+    }));
+
+    return res.status(200).json(blogsWithStarredAndSaved);
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });
@@ -500,6 +523,29 @@ export const getBlogs = async (req: Request, res: Response) => {
 export const getBlog = async (req: Request, res: Response) => {
   try {
     const blogId = req.params.id;
+
+    const token = req?.headers?.authorization?.split(" ")[1];
+
+    let user = { id: 0 } as any;
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as unknown as JWTPayload;
+
+      user = await db.user.findUnique({
+        where: {
+          id: decoded.id,
+        },
+        select: {
+          id: true,
+          fullname: true,
+          username: true,
+          bio: true,
+          email: true,
+          isEmailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+    }
 
     const blog = await db.blog.findUnique({
       where: {
@@ -533,6 +579,14 @@ export const getBlog = async (req: Request, res: Response) => {
             comments: true,
           },
         },
+        stars: {
+          where: { userId: user.id },
+          select: { id: true },
+        },
+        saves: {
+          where: { userId: user.id },
+          select: { id: true },
+        },
       },
     });
 
@@ -544,9 +598,14 @@ export const getBlog = async (req: Request, res: Response) => {
       return res.status(404).send("Blog not found");
     }
 
-    const { draft, ...rest } = blog;
+    const { draft, stars, saves, ...rest } = blog;
 
-    return res.status(200).json(rest);
+    const isStarredByUser = blog.stars.length > 0;
+    const isSavedByUser = blog.saves.length > 0;
+
+    return res
+      .status(200)
+      .json({ ...rest, starred: isStarredByUser, saved: isSavedByUser });
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });
@@ -614,13 +673,22 @@ export const getCategoryBlogs = async (req: Request, res: Response) => {
             comments: true,
           },
         },
+        saves: {
+          where: { userId: req.user.id },
+          select: { id: true },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return res.status(200).json(blogs);
+    const blogsWithStarredAndSaved = await blogs.map(({ saves, ...blog }) => ({
+      ...blog,
+      saved: saves.length > 0,
+    }));
+
+    return res.status(200).json(blogsWithStarredAndSaved);
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });
