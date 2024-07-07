@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import db from "../lib/db";
 import crypto from "crypto";
 import { sendMail } from "../lib/nodemailer";
+import axios from "axios";
 
 // @desc    Get a user profile
 // @route   GET /api/user/:username
@@ -25,6 +26,7 @@ export const getProfile = async (req: Request, res: Response) => {
         _count: {
           select: {
             followers: true,
+            followed: true,
           },
         },
       },
@@ -274,7 +276,7 @@ export const editUser = async (req: Request, res: Response) => {
   try {
     const { fullname, username, bio, imageUrl } = req.body;
 
-    if (!fullname && !username && !bio && !imageUrl) {
+    if (!fullname && !username && !bio) {
       return res.status(400).send("Missing required fields");
     }
 
@@ -296,6 +298,8 @@ export const editUser = async (req: Request, res: Response) => {
     let defaultImageUrl: string | null | undefined = imageUrl;
     if (!imageUrl) {
       defaultImageUrl = req.user.imageUrl;
+    } else if (imageUrl == "none") {
+      defaultImageUrl = null;
     }
 
     const user = await db.user.update({
@@ -369,6 +373,63 @@ export const activateAccount = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json(user);
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
+// @desc    Register new user
+// @route   POST /api/register/oauth
+// @access  Public
+export const registerUserWithProvider = async (req: Request, res: Response) => {
+  try {
+    const { token, provider } = req.body;
+
+    if (!token || !provider) {
+      return res.status(400).send("Missing required fields");
+    }
+
+    const userRes = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${token}`
+    );
+
+    if (!userRes) {
+      return res.status(404).send("User not found");
+    }
+
+    const userExists = await db.user.findFirst({
+      where: {
+        email: userRes.data.email,
+      },
+    });
+
+    if (userExists) {
+      return res.status(400).send("User already exists");
+    }
+
+    const newUser = await db.user.create({
+      data: {
+        email: userRes.data.email,
+      },
+      select: {
+        id: true,
+        email: true,
+        provider: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!newUser) {
+      return res.status(400).send("Invalid user data");
+    }
+
+    const JWTToken = await generateToken(newUser.id);
+
+    res.setHeader("Authorization", `Bearer ${JWTToken}`);
+
+    return res.status(201).json(newUser);
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });
@@ -476,6 +537,10 @@ export const loginUser = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(400).send("Incorrect email or password");
+    }
+
+    if (user.provider != "DEFAULT" || !user.hashedPassword) {
+      return res.status(400).send("Account signed up using a provider");
     }
 
     const passwordMatch = await bcrypt.compare(password, user.hashedPassword);

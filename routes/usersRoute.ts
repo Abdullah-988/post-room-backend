@@ -13,12 +13,14 @@ import {
   recentSearches,
   deleteSearch,
   editUser,
+  registerUserWithProvider,
 } from "../controllers/userController";
 import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
+router.post("/register/oauth", registerUserWithProvider);
 router.post("/login", loginUser);
 router.post("/activate/:token", activateAccount);
 router.post("/user/category", protect, addCategories);

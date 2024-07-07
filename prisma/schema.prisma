@@ -22,7 +22,8 @@ model User {
   bio             String?
   email           String        @unique
   isEmailVerified Boolean       @default(false)
-  hashedPassword  String
+  hashedPassword  String?
+  provider        AccountType   @default(DEFAULT)
 
   activateTokens  ActivateToken[]
   comments        Comment[]
@@ -37,6 +38,13 @@ model User {
 
   createdAt       DateTime      @default(now()) 
   updatedAt       DateTime      @updatedAt
+}
+
+enum AccountType {
+  DEFAULT
+  GOOGLE
+  FACEBOOK
+  APPLE
 }
 
 model ActivateToken {
