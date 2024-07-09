@@ -15,29 +15,30 @@ datasource db {
 }
 
 model User {
-  id              Int           @id @default(autoincrement())
-  fullname        String?
-  username        String?       @unique
-  imageUrl        String?
-  bio             String?
-  email           String        @unique
-  isEmailVerified Boolean       @default(false)
-  hashedPassword  String?
-  provider        AccountType   @default(DEFAULT)
+  id                   Int           @id @default(autoincrement())
+  fullname             String?
+  username             String?       @unique
+  imageUrl             String?
+  bio                  String?
+  email                String        @unique
+  isEmailVerified      Boolean       @default(false)
+  hashedPassword       String?
+  provider             AccountType   @default(DEFAULT)
 
-  activateTokens  ActivateToken[]
-  comments        Comment[]
-  savedBlogs      List[]
-  blogs           Blog[]
-  notification    Notification[]
-  searches        Searches[]
-  stars           StarOnBlogs[]
-  categories      CategoryOnUsers[]
-  followers       Follow[]      @relation("UserFollowers")
-  followed        Follow[]      @relation("UserFollowed")
+  activateTokens       ActivateToken[]
+  passwordResetTokens  PasswordResetToken[]
+  comments             Comment[]
+  savedBlogs           List[]
+  blogs                Blog[]
+  notification         Notification[]
+  searches             Searches[]
+  stars                StarOnBlogs[]
+  categories           CategoryOnUsers[]
+  followers            Follow[]      @relation("UserFollowers")
+  followed             Follow[]      @relation("UserFollowed")
 
-  createdAt       DateTime      @default(now()) 
-  updatedAt       DateTime      @updatedAt
+  createdAt            DateTime      @default(now()) 
+  updatedAt            DateTime      @updatedAt
 }
 
 enum AccountType {
@@ -47,6 +48,16 @@ enum AccountType {
   APPLE
 }
 
+model PasswordResetToken {
+  id              Int       @id @default(autoincrement())
+  token           String    @unique
+  resetAt         DateTime?
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
 model ActivateToken {
   id              Int       @id @default(autoincrement())
   token           String    @unique

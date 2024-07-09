@@ -14,6 +14,8 @@ import {
   deleteSearch,
   editUser,
   registerUserWithProvider,
+  resetPasswordRequest,
+  resetAccountPassword,
 } from "../controllers/userController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -22,6 +24,10 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/register/oauth", registerUserWithProvider);
 router.post("/login", loginUser);
+
+router.post("/user/reset-password", resetPasswordRequest);
+router.post("/user/reset-password/:token", resetAccountPassword);
+
 router.post("/activate/:token", activateAccount);
 router.post("/user/category", protect, addCategories);
 router.get("/me", protect, getUser);

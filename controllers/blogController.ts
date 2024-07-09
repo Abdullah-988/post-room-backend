@@ -603,9 +603,22 @@ export const getBlog = async (req: Request, res: Response) => {
     const isStarredByUser = blog.stars.length > 0;
     const isSavedByUser = blog.saves.length > 0;
 
-    return res
-      .status(200)
-      .json({ ...rest, starred: isStarredByUser, saved: isSavedByUser });
+    let isFollowingAuthor = false;
+    if (user.id != 0) {
+      isFollowingAuthor = !!(await db.follow.findFirst({
+        where: {
+          userId: blog.author.id,
+          followerId: user.id,
+        },
+      }));
+    }
+
+    return res.status(200).json({
+      ...rest,
+      starred: isStarredByUser,
+      saved: isSavedByUser,
+      following: isFollowingAuthor,
+    });
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });
