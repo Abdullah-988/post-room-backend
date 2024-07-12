@@ -461,9 +461,9 @@ export const resetAccountPassword = async (req: Request, res: Response) => {
       return res.status(400).send("Token expired or not valid");
     }
 
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10}$/;
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
-    if (!regex.test(password)) {
+    if (!passwordRegex.test(password)) {
       return res.status(422).send("Password does not meet security requirments");
     }
 
@@ -647,8 +647,7 @@ export const registerUser = async (req: Request, res: Response) => {
       return res.status(400).send("User already exists");
     }
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10}$/;
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
     if (!passwordRegex.test(password)) {
       return res.status(422).send("Password does not meet security requirments");
