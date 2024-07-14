@@ -528,23 +528,30 @@ export const getBlog = async (req: Request, res: Response) => {
 
     let user = { id: 0 } as any;
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as unknown as JWTPayload;
+      try {
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET!
+        ) as unknown as JWTPayload;
 
-      user = await db.user.findUnique({
-        where: {
-          id: decoded.id,
-        },
-        select: {
-          id: true,
-          fullname: true,
-          username: true,
-          bio: true,
-          email: true,
-          isEmailVerified: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
+        user = await db.user.findUnique({
+          where: {
+            id: decoded.id,
+          },
+          select: {
+            id: true,
+            fullname: true,
+            username: true,
+            bio: true,
+            email: true,
+            isEmailVerified: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+      } catch {
+        return res.status(401).send("Invalid token");
+      }
     }
 
     const blog = await db.blog.findUnique({
@@ -594,7 +601,7 @@ export const getBlog = async (req: Request, res: Response) => {
       return res.status(404).send("Blog not found");
     }
 
-    if (blog.draft && blog.author.id != req.user.id) {
+    if (blog.draft && blog.author.id != user.id) {
       return res.status(404).send("Blog not found");
     }
 
