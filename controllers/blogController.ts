@@ -104,12 +104,27 @@ export const searchBlogs = async (req: Request, res: Response) => {
       }
     }
 
+    const isSearchDuplicated = await db.searches.findFirst({
+      where: {
+        content: query,
+        userId: req.user.id,
+      },
+    });
+
     await db.searches.create({
       data: {
         content: query,
         userId: req.user.id,
       },
     });
+
+    if (isSearchDuplicated) {
+      await db.searches.delete({
+        where: {
+          id: isSearchDuplicated.id,
+        },
+      });
+    }
 
     return res.status(200).json(blogsWithStarredAndSaved);
   } catch (error: any) {
@@ -605,7 +620,7 @@ export const getBlog = async (req: Request, res: Response) => {
       return res.status(404).send("Blog not found");
     }
 
-    const { draft, stars, saves, ...rest } = blog;
+    const { stars, saves, ...rest } = blog;
 
     const isStarredByUser = blog.stars.length > 0;
     const isSavedByUser = blog.saves.length > 0;

@@ -239,6 +239,24 @@ export const getNotifications = async (req: Request, res: Response) => {
       where: {
         userId: req.user.id,
       },
+      select: {
+        id: true,
+        blog: {
+          select: {
+            id: true,
+            blogId: true,
+            title: true,
+            author: {
+              select: {
+                id: true,
+                fullname: true,
+                username: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return res.status(200).json(notifications);
