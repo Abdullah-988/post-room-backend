@@ -36,14 +36,10 @@ export const getProfile = async (req: Request, res: Response) => {
       return res.status(404).send("Account not found");
     }
 
-    let blogQuery = { authorId: user.id } as { authorId: number; draft?: boolean };
-
-    if (user.id != req.user.id) {
-      blogQuery = { ...blogQuery, draft: false };
-    }
-
     const userBlogs = await db.blog.findMany({
-      where: blogQuery,
+      where: {
+        authorId: user.id,
+      },
       select: {
         id: true,
         blogId: true,

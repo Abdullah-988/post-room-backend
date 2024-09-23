@@ -17,6 +17,7 @@ import {
   publishBlog,
   getCategories,
   getCategoryBlogs,
+  getDraftedBlogs,
 } from "../controllers/blogController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -25,6 +26,7 @@ const router = express.Router();
 router.get("/blog", protect, getBlogs);
 router.get("/search", protect, searchBlogs);
 router.get("/blog/:id", getBlog);
+router.get("/blog/draft", getDraftedBlogs);
 router.post("/blog", protect, createBlog);
 router.put("/blog/:id", protect, editBlog);
 router.patch("/blog/:id", protect, publishBlog);

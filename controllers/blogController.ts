@@ -532,6 +532,57 @@ export const getBlogs = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Get user drafted blogs
+// @route   GET /api/blog/draft
+// @access  Private
+export const getDraftedBlogs = async (req: Request, res: Response) => {
+  try {
+    const blogs = await db.blog.findMany({
+      where: {
+        draft: true,
+        authorId: req.user.id,
+      },
+      select: {
+        id: true,
+        blogId: true,
+        title: true,
+        content: true,
+        imageUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            imageUrl: true,
+            fullname: true,
+            username: true,
+          },
+        },
+        _count: {
+          select: {
+            stars: true,
+            comments: true,
+          },
+        },
+        saves: {
+          where: { userId: req.user.id },
+          select: { id: true },
+        },
+      },
+    });
+
+    return res.status(200).json(blogs);
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
 // @desc    Get a blog
 // @route   GET /api/blog/:id
 // @access  Public
