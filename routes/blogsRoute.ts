@@ -25,7 +25,7 @@ const router = express.Router();
 
 router.get("/blog", protect, getBlogs);
 router.get("/search", protect, searchBlogs);
-router.get("/blog/draft", getDraftedBlogs);
+router.get("/blog/draft", protect, getDraftedBlogs);
 router.get("/blog/:id", getBlog);
 router.post("/blog", protect, createBlog);
 router.put("/blog/:id", protect, editBlog);
