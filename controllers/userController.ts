@@ -39,6 +39,7 @@ export const getProfile = async (req: Request, res: Response) => {
     const userBlogs = await db.blog.findMany({
       where: {
         authorId: user.id,
+        draft: false,
       },
       select: {
         id: true,
