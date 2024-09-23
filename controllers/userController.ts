@@ -177,8 +177,8 @@ export const followUser = async (req: Request, res: Response) => {
 
     const follow = await db.follow.create({
       data: {
-        userId: user.id,
-        followerId: req.user.id,
+        userId: req.user.id,
+        followerId: user.id,
       },
     });
 
