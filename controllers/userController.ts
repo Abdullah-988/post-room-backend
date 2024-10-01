@@ -242,6 +242,7 @@ export const getNotifications = async (req: Request, res: Response) => {
           select: {
             id: true,
             blogId: true,
+            imageUrl: true,
             title: true,
             author: {
               select: {
@@ -253,6 +254,8 @@ export const getNotifications = async (req: Request, res: Response) => {
             },
           },
         },
+        createdAt: true,
+        seen: true,
       },
     });
 
