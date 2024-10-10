@@ -5,7 +5,7 @@ import "dotenv/config";
 import usersRoute from "./routes/usersRoute";
 import blogsRoute from "./routes/blogsRoute";
 
-const port = process.env.PORT;
+const port = process.env.PORT || 5555;
 
 const app = express();
 

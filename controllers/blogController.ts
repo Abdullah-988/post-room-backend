@@ -30,18 +30,10 @@ export const searchBlogs = async (req: Request, res: Response) => {
 
     const blogs = await db.blog.findMany({
       where: {
-        OR: [
-          {
-            title: {
-              contains: query.toLowerCase(),
-            },
-          },
-          {
-            content: {
-              contains: query.toLowerCase(),
-            },
-          },
-        ],
+        title: {
+          contains: query,
+          mode: "insensitive"
+        },
         draft: false,
       },
       skip,
