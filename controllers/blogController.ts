@@ -134,6 +134,37 @@ export const searchBlogs = async (req: Request, res: Response) => {
 };
 
 // @desc    Create a comment on a blog
+// @route   GET /api/blog/:id/comment
+// @access  Private
+export const getComments = async (req: Request, res: Response) => {
+  try {
+    const blogId = req.params.id as string;
+
+    const blog = await db.blog.findUnique({
+      where: {
+        blogId,
+        draft: false,
+      },
+    });
+
+    if (!blog) {
+      return res.status(404).send("Blog not found");
+    }
+
+    const comments = await db.comment.findMany({
+      where: {
+        blogId: blog.id
+      },
+    });
+
+    return res.status(200).json(comments);
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
+// @desc    Create a comment on a blog
 // @route   POST /api/blog/:id/comment
 // @access  Private
 export const createComment = async (req: Request, res: Response) => {

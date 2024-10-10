@@ -18,6 +18,7 @@ import {
   getCategories,
   getCategoryBlogs,
   getDraftedBlogs,
+  getComments,
 } from "../controllers/blogController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -43,6 +44,7 @@ router.get("/blog/category/:category", protect, getCategoryBlogs);
 router.post("/blog/star/:id", protect, starBlog);
 router.delete("/blog/star/:id", protect, unstarBlog);
 
+router.get("/blog/:id/comment", getComments);
 router.post("/blog/:id/comment", protect, createComment);
 router.put("/blog/comment/:id", protect, editComment);
 router.delete("/blog/comment/:id", protect, deleteComment);
