@@ -155,6 +155,21 @@ export const getComments = async (req: Request, res: Response) => {
       where: {
         blogId: blog.id
       },
+      select: {
+        id: true,
+        blogId: true,
+        author: {
+          select: {
+            id: true,
+            imageUrl: true,
+            fullname: true,
+            username: true,
+          }
+        },
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+      }
     });
 
     return res.status(200).json(comments);
