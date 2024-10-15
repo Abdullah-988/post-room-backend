@@ -891,6 +891,10 @@ export const publishBlog = async (req: Request, res: Response) => {
       return res.status(403).send("Forbidden");
     }
 
+    if (!blog.title || !blog.content) {
+      return res.status(400).send("Blog title and content cannot be empty");
+    }
+
     const publishedBlog = await db.blog.update({
       where: {
         blogId,
@@ -942,10 +946,6 @@ export const editBlog = async (req: Request, res: Response) => {
 
     if (!blog) {
       return res.status(404).send("Blog not found");
-    }
-
-    if (!title || !content) {
-      return res.status(400).send("Missing required fields");
     }
 
     let defaultImageUrl;

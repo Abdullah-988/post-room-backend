@@ -84,8 +84,8 @@ model ActivateToken {
 model Blog {
   id                  Int       @id @default(autoincrement())
   blogId              String    @unique
-  title               String
-  content             String
+  title               String?
+  content             String?
   imageUrl            String?
   draft               Boolean   @default(true)
 
