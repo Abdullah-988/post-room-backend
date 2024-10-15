@@ -32,7 +32,7 @@ export const searchBlogs = async (req: Request, res: Response) => {
       where: {
         title: {
           contains: query,
-          mode: "insensitive"
+          mode: "insensitive",
         },
         draft: false,
       },
@@ -145,7 +145,7 @@ export const getComments = async (req: Request, res: Response) => {
 
     const comments = await db.comment.findMany({
       where: {
-        blogId: blog.id
+        blogId: blog.id,
       },
       select: {
         id: true,
@@ -156,12 +156,15 @@ export const getComments = async (req: Request, res: Response) => {
             imageUrl: true,
             fullname: true,
             username: true,
-          }
+          },
         },
         content: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return res.status(200).json(comments);
@@ -718,8 +721,8 @@ export const getBlog = async (req: Request, res: Response) => {
     if (user.id != 0) {
       isFollowingAuthor = !!(await db.follow.findFirst({
         where: {
-          userId: blog.author.id,
-          followerId: user.id,
+          userId: user.id,
+          followerId: blog.author.id,
         },
       }));
     }
@@ -871,7 +874,6 @@ export const createBlog = async (req: Request, res: Response) => {
 // @access  Private
 export const publishBlog = async (req: Request, res: Response) => {
   try {
-    const { categories } = req.body;
     const blogId = req.params.id as string;
 
     const blog = await db.blog.findUnique({
@@ -887,31 +889,6 @@ export const publishBlog = async (req: Request, res: Response) => {
 
     if (blog.authorId != req.user.id) {
       return res.status(403).send("Forbidden");
-    }
-
-    if (categories.length != 0) {
-      for (let i = 0; i < categories.length; i++) {
-        let category = await db.category.findUnique({
-          where: {
-            name: categories[i],
-          },
-        });
-
-        if (!category) {
-          category = await db.category.create({
-            data: {
-              name: categories[i],
-            },
-          });
-        }
-
-        await db.categoryOnBlogs.create({
-          data: {
-            blogId: blog.id,
-            categoryId: category.id,
-          },
-        });
-      }
     }
 
     const publishedBlog = await db.blog.update({
@@ -954,12 +931,8 @@ export const publishBlog = async (req: Request, res: Response) => {
 // @access  Private
 export const editBlog = async (req: Request, res: Response) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, imageUrl, categories } = req.body;
     const blogId = req.params.id as string;
-
-    if (!title || !content) {
-      return res.status(400).send("Missing required fields");
-    }
 
     const blog = await db.blog.findUnique({
       where: {
@@ -969,6 +942,16 @@ export const editBlog = async (req: Request, res: Response) => {
 
     if (!blog) {
       return res.status(404).send("Blog not found");
+    }
+
+    if (!title || !content) {
+      return res.status(400).send("Missing required fields");
+    }
+
+    let defaultImageUrl;
+
+    if (!imageUrl) {
+      defaultImageUrl = blog.imageUrl;
     }
 
     if (blog.authorId != req.user.id) {
@@ -982,8 +965,40 @@ export const editBlog = async (req: Request, res: Response) => {
       data: {
         title,
         content,
+        imageUrl: defaultImageUrl,
       },
     });
+
+    await db.categoryOnBlogs.deleteMany({
+      where: {
+        blogId: blog.id,
+      },
+    });
+
+    if (categories.length != 0) {
+      for (let i = 0; i < categories.length; i++) {
+        let category = await db.category.findUnique({
+          where: {
+            name: categories[i],
+          },
+        });
+
+        if (!category) {
+          category = await db.category.create({
+            data: {
+              name: categories[i],
+            },
+          });
+        }
+
+        await db.categoryOnBlogs.create({
+          data: {
+            blogId: blog.id,
+            categoryId: category.id,
+          },
+        });
+      }
+    }
 
     return res.status(200).json(editedBlog);
   } catch (error: any) {

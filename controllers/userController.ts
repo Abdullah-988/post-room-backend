@@ -174,8 +174,8 @@ export const followUser = async (req: Request, res: Response) => {
 
     const follow = await db.follow.create({
       data: {
-        userId: req.user.id,
-        followerId: user.id,
+        userId: user.id,
+        followerId: req.user.id,
       },
     });
 
@@ -256,6 +256,9 @@ export const getNotifications = async (req: Request, res: Response) => {
         },
         createdAt: true,
         seen: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
