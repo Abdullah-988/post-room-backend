@@ -136,9 +136,9 @@ model List {
 
 model Follow {
   id          Int       @id @default(autoincrement())
-  user        User      @relation("UserFollowed", fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation("UserFollowers", fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
-  follower    User      @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  follower    User      @relation("UserFollowed", fields: [followerId], references: [id], onDelete: Cascade)
   followerId  Int
   
   @@unique([userId, followerId])

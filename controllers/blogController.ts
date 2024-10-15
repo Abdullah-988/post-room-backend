@@ -721,8 +721,8 @@ export const getBlog = async (req: Request, res: Response) => {
     if (user.id != 0) {
       isFollowingAuthor = !!(await db.follow.findFirst({
         where: {
-          userId: user.id,
-          followerId: blog.author.id,
+          userId: blog.author.id,
+          followerId: user.id,
         },
       }));
     }
