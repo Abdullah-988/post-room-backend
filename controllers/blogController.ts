@@ -521,8 +521,29 @@ export const getBlogs = async (req: Request, res: Response) => {
       skip = parseInt(req.query.skip as string);
     }
 
+    const columns = [
+      "id",
+      "blogId",
+      "title",
+      "content",
+      "imageUrl",
+      "createdAt",
+      "updatedAt",
+    ];
+
+    const orders = ["asc", "desc"];
+
+    let skipBlogIds: number[] = [];
+
+    if (req.query.skippedblogs) {
+      let skipBlogIds = req.query.skippedblogs as unknown as number[];
+    }
+
     const blogs = await db.blog.findMany({
       where: {
+        id: {
+          notIn: skipBlogIds,
+        },
         draft: false,
       },
       skip,
@@ -558,6 +579,10 @@ export const getBlogs = async (req: Request, res: Response) => {
           where: { userId: req.user.id },
           select: { id: true },
         },
+      },
+      orderBy: {
+        [columns[Math.round(Math.random() * columns.length - 1)]]:
+          orders[Math.round(Math.random() * orders.length - 1)],
       },
     });
 
