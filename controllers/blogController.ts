@@ -948,12 +948,6 @@ export const editBlog = async (req: Request, res: Response) => {
       return res.status(404).send("Blog not found");
     }
 
-    let defaultImageUrl;
-
-    if (!imageUrl) {
-      defaultImageUrl = blog.imageUrl;
-    }
-
     if (blog.authorId != req.user.id) {
       return res.status(403).send("Forbidden");
     }
@@ -965,7 +959,7 @@ export const editBlog = async (req: Request, res: Response) => {
       data: {
         title,
         content,
-        imageUrl: defaultImageUrl,
+        imageUrl,
       },
     });
 
