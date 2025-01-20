@@ -1034,11 +1034,11 @@ export const editBlog = async (req: Request, res: Response) => {
 // @access  Private
 export const deleteBlog = async (req: Request, res: Response) => {
   try {
-    const blogId = parseInt(req.params.id);
+    const blogId = req.params.id;
 
     const blog = await db.blog.findUnique({
       where: {
-        id: blogId,
+        blogId,
       },
     });
 
@@ -1052,7 +1052,7 @@ export const deleteBlog = async (req: Request, res: Response) => {
 
     const deletedBlog = await db.blog.delete({
       where: {
-        id: blogId,
+        blogId,
       },
     });
 

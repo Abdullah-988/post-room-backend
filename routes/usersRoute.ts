@@ -16,6 +16,8 @@ import {
   registerUserWithProvider,
   resetPasswordRequest,
   resetAccountPassword,
+  sendAccountDeleteEmail,
+  deleteUser,
 } from "../controllers/userController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -32,6 +34,8 @@ router.post("/activate/:token", activateAccount);
 router.post("/user/category", protect, addCategories);
 router.get("/me", protect, getUser);
 router.put("/user", protect, editUser);
+router.delete("/user", protect, sendAccountDeleteEmail);
+router.delete("/user/:token", protect, deleteUser);
 
 router.get("/user/:username", protect, getProfile);
 

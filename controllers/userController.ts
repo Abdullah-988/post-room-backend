@@ -863,6 +863,84 @@ export const getUser = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Send an account delete email confirmation
+// @route   DELETE /api/user
+// @access  Private
+export const sendAccountDeleteEmail = async (req: Request, res: Response) => {
+  try {
+    const { id, email } = req?.user;
+
+    const deleteTokenString =
+      crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+
+    const deleteToken = await db.deleteToken.create({
+      data: {
+        userId: id,
+        token: deleteTokenString,
+      },
+    });
+
+    const confirmDeletionUrl = `http://localhost:3000/delete-account/${deleteToken.token}`;
+
+    await sendMail({
+      subject: "Account delete confirmation for Post Room account",
+      email: email,
+      html: `
+      <div>
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 1rem;">Delete your Post Room account</h1>
+        <a href=${confirmDeletionUrl} target="_blank" style="background-color: #ff2020; font-size: 14px; color: #ffffff; font-weight: 600; border-radius: 0.5rem; padding: 0.75rem; text-decoration: none;">
+          Delete Your Account
+        </a>
+        <h1 style="color: #ff2020; font-size: 32px; margin-top: 1rem;">Warning this action is irreversible!</h1>
+        <div style="margin-top: 5rem;">
+          <h2 style="font-size: 14px; margin-bottom: 1rem;">If you can't see the button, Use this link instead:</h2>
+          <a href=${confirmDeletionUrl} target="_blank" style="color: #0072dd;">${confirmDeletionUrl}</a>
+        </div>
+        <p style="margin-top: 1rem;">This link will expire in 24 hours</p>
+      </div>
+      `,
+    });
+
+    return res.status(200).send("email sent");
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
+// @desc    Delete an account using deletion token
+// @route   DELETE /api/user/:token
+// @access  Private
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req?.user;
+
+    const token = req.params.token as string;
+
+    const deleteToken = await db.deleteToken.findUnique({
+      where: {
+        token,
+      },
+    });
+
+    if (!deleteToken) {
+      return res.status(404).send("Token not found");
+    }
+
+    if (deleteToken.createdAt < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
+      return res.status(400).send("Token is expired");
+    }
+
+    if (deleteToken.userId != id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    return res.status(200).send({ message: "account deleted" });
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
 // Generate JWT
 const generateToken = async (id: number) => {
   return await jwt.sign({ id }, process.env.JWT_SECRET!, {

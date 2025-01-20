@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -26,6 +25,7 @@ model User {
   provider             AccountType   @default(DEFAULT)
 
   activateTokens       ActivateToken[]
+  deleteTokens         DeleteToken[]
   accountDeleteTokens  AccountDeleteToken[]
   passwordResetTokens  PasswordResetToken[]
   comments             Comment[]
@@ -74,6 +74,16 @@ model ActivateToken {
   id              Int       @id @default(autoincrement())
   token           String    @unique
   activatedAt     DateTime?
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model DeleteToken {
+  id              Int       @id @default(autoincrement())
+  token           String    @unique
   userId          Int
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
