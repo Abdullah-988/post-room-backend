@@ -533,11 +533,14 @@ export const getBlogs = async (req: Request, res: Response) => {
 
     const orders = ["asc", "desc"];
 
-    let skipBlogIds: number[] = [];
+    let skipBlogIdsStrings: string[] = [];
 
     if (req.query.skipBlogIds) {
-      skipBlogIds = req.query.skipBlogIds as unknown as number[];
+      skipBlogIdsStrings = req.query.skipBlogIds as unknown as string[];
     }
+
+    // change rthis array of ids from strings to numbers
+    let skipBlogIds: number[] = skipBlogIdsStrings.map((id) => parseInt(id));
 
     const blogs = await db.blog.findMany({
       where: {
