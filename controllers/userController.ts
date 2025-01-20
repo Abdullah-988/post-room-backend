@@ -935,6 +935,12 @@ export const deleteUser = async (req: Request, res: Response) => {
       return res.status(403).send("Forbidden");
     }
 
+    await db.user.delete({
+      where: {
+        id: deleteToken.userId,
+      },
+    });
+
     return res.status(200).send({ message: "account deleted" });
   } catch (error: any) {
     console.log(error.message);
