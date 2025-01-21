@@ -575,14 +575,14 @@ export const activateAccount = async (req: Request, res: Response) => {
   }
 };
 
-// @desc    Register new user
-// @route   POST /api/register/oauth
+// @desc    Register or Login new user with provider
+// @route   POST /api/oauth
 // @access  Public
-export const registerUserWithProvider = async (req: Request, res: Response) => {
+export const authorizeUserWithProvider = async (req: Request, res: Response) => {
   try {
     const { token, provider } = req.body as {
       token: string;
-      provider: "google" | "facebook" | "apple";
+      provider: "google";
     };
 
     if (!token || !provider) {
@@ -602,10 +602,21 @@ export const registerUserWithProvider = async (req: Request, res: Response) => {
         where: {
           email: userRes.data.email,
         },
+        select: {
+          id: true,
+          email: true,
+          provider: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
 
       if (userExists) {
-        return res.status(400).send("User already exists");
+        const JWTToken = await generateToken(userExists.id);
+
+        res.setHeader("Authorization", `Bearer ${JWTToken}`);
+
+        return res.status(200).json(userExists);
       }
 
       const newUser = await db.user.create({

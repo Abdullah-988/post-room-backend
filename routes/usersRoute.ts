@@ -13,7 +13,7 @@ import {
   recentSearches,
   deleteSearch,
   editUser,
-  registerUserWithProvider,
+  authorizeUserWithProvider,
   resetPasswordRequest,
   resetAccountPassword,
   sendAccountDeleteEmail,
@@ -24,7 +24,7 @@ import { protect } from "../middleware/authMiddleware";
 const router = express.Router();
 
 router.post("/register", registerUser);
-router.post("/register/oauth", registerUserWithProvider);
+router.post("/oauth", authorizeUserWithProvider);
 router.post("/login", loginUser);
 
 router.post("/user/reset-password", resetPasswordRequest);
