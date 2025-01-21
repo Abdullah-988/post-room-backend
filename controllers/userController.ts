@@ -604,6 +604,8 @@ export const authorizeUserWithProvider = async (req: Request, res: Response) => 
         },
         select: {
           id: true,
+          fullname: true,
+          username: true,
           email: true,
           provider: true,
           createdAt: true,
@@ -628,6 +630,8 @@ export const authorizeUserWithProvider = async (req: Request, res: Response) => 
         select: {
           id: true,
           email: true,
+          fullname: true,
+          username: true,
           provider: true,
           createdAt: true,
           updatedAt: true,
