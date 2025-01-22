@@ -18,6 +18,8 @@ import {
   resetAccountPassword,
   sendAccountDeleteEmail,
   deleteUser,
+  getUserCategories,
+  getWhoToFollow,
 } from "../controllers/userController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -35,8 +37,10 @@ router.post("/user/category", protect, addCategories);
 router.get("/me", protect, getUser);
 router.put("/user", protect, editUser);
 router.delete("/user", protect, sendAccountDeleteEmail);
+router.get("/user/follow", protect, getWhoToFollow);
 router.delete("/user/:token", protect, deleteUser);
 
+router.get("/user/categories", protect, getUserCategories);
 router.get("/user/:username", protect, getProfile);
 
 router.get("/search/recent", protect, recentSearches);

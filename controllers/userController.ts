@@ -5,6 +5,7 @@ import db from "../lib/db";
 import crypto from "crypto";
 import { sendMail } from "../lib/nodemailer";
 import axios from "axios";
+import { User } from "@prisma/client";
 
 // @desc    Get a user profile
 // @route   GET /api/user/:username
@@ -100,6 +101,68 @@ export const recentSearches = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json(searches);
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
+// @desc    Get user's selected categories
+// @route   GET /api/user/categories
+// @access  Private
+export const getUserCategories = async (req: Request, res: Response) => {
+  try {
+    const categories = await db.categoryOnUsers.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      select: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json(categories);
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
+// @desc    Get who to follow
+// @route   GET /api/user/follow
+// @access  Private
+export const getWhoToFollow = async (req: Request, res: Response) => {
+  try {
+    interface UserWithBlogCount extends User {
+      blogCount: number;
+    }
+
+    const users: UserWithBlogCount[] = await db.$queryRaw`
+      SELECT 
+        u.id, 
+        u.fullname, 
+        u.username, 
+        u."imageUrl", 
+        COUNT(b.id) AS "blogCount"
+      FROM "User" u
+      JOIN "Blog" b ON u.id = b."authorId"
+      WHERE u.id != ${req.user.id}
+      GROUP BY u.id, u.fullname, u.username, u."imageUrl"
+      HAVING COUNT(b.id) > 1
+      ORDER BY RANDOM();
+    `;
+
+    const serializedUsers = users.map((user) => ({
+      ...user,
+      blogCount: user.blogCount.toString(),
+    }));
+
+    return res.status(200).json(serializedUsers);
   } catch (error: any) {
     console.log(error.message);
     return res.status(500).send({ message: error.message });

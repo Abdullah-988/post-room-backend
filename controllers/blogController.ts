@@ -767,6 +767,47 @@ export const getBlog = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Get top blogs
+// @route   GET /api/blog/top
+// @access  Public
+export const getTopBlogs = async (req: Request, res: Response) => {
+  try {
+    const blogs = await db.blog.findMany({
+      where: {
+        draft: false,
+      },
+      select: {
+        id: true,
+        blogId: true,
+        title: true,
+        content: true,
+        imageUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        draft: true,
+        authorId: true,
+        updatedContentAt: true,
+        _count: {
+          select: {
+            stars: true,
+          },
+        },
+      },
+      orderBy: {
+        stars: {
+          _count: "desc",
+        },
+      },
+      take: 5,
+    });
+
+    return res.status(200).json(blogs);
+  } catch (error: any) {
+    console.log(error.message);
+    return res.status(500).send({ message: error.message });
+  }
+};
+
 // @desc    Get blogs by a category
 // @route   GET /api/blog/category/:category?skip=0
 // @access  Private

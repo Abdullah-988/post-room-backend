@@ -19,6 +19,7 @@ import {
   getCategoryBlogs,
   getDraftedBlogs,
   getComments,
+  getTopBlogs,
 } from "../controllers/blogController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -27,6 +28,7 @@ const router = express.Router();
 router.get("/blog", protect, getBlogs);
 router.get("/search", protect, searchBlogs);
 router.get("/blog/draft", protect, getDraftedBlogs);
+router.get("/blog/top", getTopBlogs);
 router.get("/blog/:id", getBlog);
 router.post("/blog", protect, createBlog);
 router.put("/blog/:id", protect, editBlog);
