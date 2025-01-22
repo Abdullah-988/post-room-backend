@@ -146,14 +146,20 @@ export const getWhoToFollow = async (req: Request, res: Response) => {
       SELECT 
         u.id, 
         u.fullname, 
-        u.username, 
+        u.username,
+        u.bio,
         u."imageUrl", 
         COUNT(b.id) AS "blogCount"
       FROM "User" u
       JOIN "Blog" b ON u.id = b."authorId"
       WHERE u.id != ${req.user.id}
+        AND u.id NOT IN (
+          SELECT f."userId"
+          FROM "Follow" f
+          WHERE f."followerId" = ${req.user.id}
+        )
       GROUP BY u.id, u.fullname, u.username, u."imageUrl"
-      HAVING COUNT(b.id) > 1
+      HAVING COUNT(b.id) > 0
       ORDER BY RANDOM();
     `;
 

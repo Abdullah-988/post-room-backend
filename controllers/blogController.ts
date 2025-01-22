@@ -785,8 +785,16 @@ export const getTopBlogs = async (req: Request, res: Response) => {
         createdAt: true,
         updatedAt: true,
         draft: true,
-        authorId: true,
         updatedContentAt: true,
+        author: {
+          select: {
+            id: true,
+            imageUrl: true,
+            fullname: true,
+            bio: true,
+            username: true,
+          },
+        },
         _count: {
           select: {
             stars: true,
