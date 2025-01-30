@@ -476,10 +476,6 @@ export const resetPasswordRequest = async (req: Request, res: Response) => {
       return res.status(404).send("Email cannot be found or signed in using a provider");
     }
 
-    if (doesUserExist.provider != "DEFAULT") {
-      return res.status(404).send("Email cannot be found or signed in using a provider");
-    }
-
     const passwordResetTokenString =
       crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
 
@@ -675,6 +671,7 @@ export const authorizeUserWithProvider = async (req: Request, res: Response) => 
           id: true,
           fullname: true,
           username: true,
+          imageUrl: true,
           email: true,
           provider: true,
           createdAt: true,
@@ -692,6 +689,8 @@ export const authorizeUserWithProvider = async (req: Request, res: Response) => 
 
       const newUser = await db.user.create({
         data: {
+          fullname: userRes.data.name,
+          imageUrl: userRes.data.picture,
           email: userRes.data.email,
           provider: "GOOGLE",
           isEmailVerified: true,
@@ -700,6 +699,7 @@ export const authorizeUserWithProvider = async (req: Request, res: Response) => 
           id: true,
           email: true,
           fullname: true,
+          imageUrl: true,
           username: true,
           provider: true,
           createdAt: true,
@@ -846,8 +846,8 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).send("Incorrect email or password");
     }
 
-    if (user.provider != "DEFAULT" || !user.hashedPassword) {
-      return res.status(400).send("Account signed up using a provider");
+    if (!user.hashedPassword) {
+      return res.status(400).send("Incorrect email or password");
     }
 
     const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
@@ -1018,6 +1018,12 @@ export const deleteUser = async (req: Request, res: Response) => {
     if (deleteToken.userId != id) {
       return res.status(403).send("Forbidden");
     }
+
+    await db.blog.deleteMany({
+      where: {
+        authorId: deleteToken.userId,
+      },
+    });
 
     await db.user.delete({
       where: {
